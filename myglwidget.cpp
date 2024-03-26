@@ -38,24 +38,18 @@ static void qNormalizeAngle(int &angle)
         angle -= 360 * 16;
 }
 
-void MyGLWidget::setXRotation(int angle)
+void MyGLWidget::setACoeff(int angle)
 {
-    qNormalizeAngle(angle);
-    if (angle != xRot) {
-        xRot = angle;
-        emit xRotationChanged(angle);
-        updateGL();
-    }
+    a = angle;
+    wrenchPoints=getPoints(1);
+    updateGL();
 }
 
-void MyGLWidget::setYRotation(int angle)
+void MyGLWidget::serRCoeff(int angle)
 {
-    qNormalizeAngle(angle);
-    if (angle != yRot) {
-        yRot = angle;
-        emit yRotationChanged(angle);
-        updateGL();
-    }
+    r = angle;
+    wrenchPoints=getPoints(1);
+    updateGL();
 }
 
 void MyGLWidget::setZRotation(int angle)
@@ -140,10 +134,10 @@ void MyGLWidget::mouseMoveEvent(QMouseEvent *event)
     int dy = event->y() - lastPos.y();
 
     if (event->buttons() & Qt::LeftButton) {
-        setXRotation(xRot + 8 * dy);
-        setYRotation(yRot + 8 * dx);
+        setACoeff(xRot + 8 * dy);
+        serRCoeff(yRot + 8 * dx);
     } else if (event->buttons() & Qt::RightButton) {
-        setXRotation(xRot + 8 * dy);
+        setACoeff(xRot + 8 * dy);
         setZRotation(zRot + 8 * dx);
     }
 

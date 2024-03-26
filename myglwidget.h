@@ -37,8 +37,8 @@ private:
 
 public slots:
     // slots for xyz-rotation slider
-    void setXRotation(int angle);
-    void setYRotation(int angle);
+    void setACoeff(int angle);
+    void serRCoeff(int angle);
     void setZRotation(int angle);
 
 signals:

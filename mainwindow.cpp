@@ -7,8 +7,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->xRotSlider, &QSlider::sliderMoved, ui->openGLWidget, &MyGLWidget::setXRotation);
-    connect(ui->yRotSlider, &QSlider::sliderMoved, ui->openGLWidget, &MyGLWidget::setYRotation);
+    connect(ui->aSlider, &QSlider::sliderMoved, ui->openGLWidget, &MyGLWidget::setACoeff);
+    connect(ui->rSlider, &QSlider::sliderMoved, ui->openGLWidget, &MyGLWidget::serRCoeff);
     connect(ui->zRotSlider, &QSlider::sliderMoved, ui->openGLWidget, &MyGLWidget::setZRotation);
 }
 
