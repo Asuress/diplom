@@ -11,6 +11,9 @@ MyGLWidget::MyGLWidget(QWidget *parent)
     yRot = 0;
     zRot = 0;
 
+    r = 2;
+    a = 3;
+
     viewSideLength = 10;
 
     wrenchPoints = getPoints(1);
@@ -202,8 +205,6 @@ QList<QPointF> MyGLWidget::getPoints(float dAngle)
         double dAngleRad = dAngle * M_PI / 180;
         double radAngle  = dAngleRad * i;
         double sqrt3     = qSqrt(3);
-        double a         = 1;
-        double r         = 2;
 
 //        double length = qSin(radAngle);
 //        point.setX(length * qCos(radAngle));
@@ -251,7 +252,7 @@ QList<QPointF> MyGLWidget::getPoints(float dAngle)
         }
         else if (radAngle > M_PI * 5 / 3 && radAngle <= M_PI * 2)
         {
-            double length = -a * qSin(radAngle + M_PI / 3) +
+            double length = -a * qSin(radAngle - M_PI / 3) / sqrt3 +
                                  qSqrt(qPow(r, 2) -
                                        qPow(qCos(radAngle - M_PI / 3), 2));
             point.setX(length * qCos(radAngle));

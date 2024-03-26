@@ -29,6 +29,8 @@ private:
     int zRot;
 
     float viewSideLength;
+    float a;
+    float r;
 
     QPoint lastPos;
     QList<QPointF> wrenchPoints;
