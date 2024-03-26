@@ -22,13 +22,16 @@ protected:
 
 private:
     void draw();
-    QList<QPoint> functionPoints(float dAngle);
+    QList<QPointF> getPoints(float dAngle);
 
     int xRot;
     int yRot;
     int zRot;
 
+    float viewSideLength;
+
     QPoint lastPos;
+    QList<QPointF> wrenchPoints;
 
 public slots:
     // slots for xyz-rotation slider
@@ -42,6 +45,10 @@ signals:
     void yRotationChanged(int angle);
     void zRotationChanged(int angle);
 
+
+    // QWidget interface
+protected:
+    void wheelEvent(QWheelEvent *event);
 };
 
 #endif // MYGLWIDGET_H

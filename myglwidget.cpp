@@ -10,6 +10,11 @@ MyGLWidget::MyGLWidget(QWidget *parent)
     xRot = 0;
     yRot = 0;
     zRot = 0;
+
+    viewSideLength = 10;
+
+    wrenchPoints = getPoints(1);
+    qDebug() << "point count:" << wrenchPoints.size();
 }
 
 QSize MyGLWidget::minimumSizeHint() const
@@ -60,25 +65,46 @@ void MyGLWidget::setZRotation(int angle)
     }
 }
 
+void MyGLWidget::wheelEvent(QWheelEvent *event)
+{
+    qDebug() << Q_FUNC_INFO;
+    qDebug() << event->angleDelta().y() / 120;
+    viewSideLength += event->angleDelta().y() / 120;
+    viewSideLength = viewSideLength < 0 ? 0 : viewSideLength;
+
+    updateGL();
+}
+
 void MyGLWidget::initializeGL()
 {
     qglClearColor(Qt::black);
 
-//    glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
-//    glShadeModel(GL_SMOOTH);
-//    glEnable(GL_LIGHTING);
-//    glEnable(GL_LIGHT0);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
 
-//    static GLfloat lightPosition[4] = { 0, 0, 10, 1.0 };
-//    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+    static GLfloat lightPosition[4] = { 0, 0, 10, 1.0 };
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 }
 
 void MyGLWidget::paintGL()
 {
+    qDebug() << Q_FUNC_INFO << "zDist" << viewSideLength;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glTranslatef(0.0, 0.0, -10.0);
+#ifdef QT_OPENGL_ES_1
+    glOrthof(-2, +2, -2, +2, 1.0, 15.0);
+#else
+    glOrtho(-viewSideLength / 2, viewSideLength / 2, -viewSideLength / 2, viewSideLength / 2, 1.0, 15.0);
+#endif
+    glMatrixMode(GL_MODELVIEW);
+
+    glLoadIdentity();
+    glTranslatef(0.0, 0.0, -10);
     glRotatef(xRot / 16.0, 1.0, 0.0, 0.0);
     glRotatef(yRot / 16.0, 0.0, 1.0, 0.0);
     glRotatef(zRot / 16.0, 0.0, 0.0, 1.0);
@@ -95,35 +121,42 @@ void MyGLWidget::resizeGL(int width, int height)
 #ifdef QT_OPENGL_ES_1
     glOrthof(-2, +2, -2, +2, 1.0, 15.0);
 #else
-    glOrtho(-2, +2, -2, +2, 1.0, 15.0);
+    glOrtho(-viewSideLength / 2, viewSideLength / 2, -viewSideLength / 2, viewSideLength / 2, 1.0, 15.0);
 #endif
     glMatrixMode(GL_MODELVIEW);
 }
 
 void MyGLWidget::mousePressEvent(QMouseEvent *event)
 {
-//    lastPos = event->pos();
+    lastPos = event->pos();
 }
 
 void MyGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-//    int dx = event->x() - lastPos.x();
-//    int dy = event->y() - lastPos.y();
+    int dx = event->x() - lastPos.x();
+    int dy = event->y() - lastPos.y();
 
-//    if (event->buttons() & Qt::LeftButton) {
-//        setXRotation(xRot + 8 * dy);
-//        setYRotation(yRot + 8 * dx);
-//    } else if (event->buttons() & Qt::RightButton) {
-//        setXRotation(xRot + 8 * dy);
-//        setZRotation(zRot + 8 * dx);
-//    }
+    if (event->buttons() & Qt::LeftButton) {
+        setXRotation(xRot + 8 * dy);
+        setYRotation(yRot + 8 * dx);
+    } else if (event->buttons() & Qt::RightButton) {
+        setXRotation(xRot + 8 * dy);
+        setZRotation(zRot + 8 * dx);
+    }
 
-//    lastPos = event->pos();
+    lastPos = event->pos();
 }
 
 void MyGLWidget::draw()
 {
     qglColor(Qt::red);
+    glBegin(GL_LINE_LOOP);
+        for(int i = 0; i < wrenchPoints.size(); i++)
+        {
+            glVertex3f(wrenchPoints[i].x(), wrenchPoints[i].y(), 0);
+        }
+    glEnd();
+/*
     glBegin(GL_QUADS);
         glNormal3f(0,0,-1);
         glVertex3f(-1,-1,0);
@@ -155,21 +188,27 @@ void MyGLWidget::draw()
         glVertex3f(-1,1,0);
         glVertex3f(-1,-1,0);
         glVertex3f(0,0,1.2);
-        glEnd();
+    glEnd();
+*/
 }
 
-QList<QPoint> MyGLWidget::functionPoints(float dAngle)
+QList<QPointF> MyGLWidget::getPoints(float dAngle)
 {
-    QList<QPoint> points;
+    QList<QPointF> points;
     int count = 360 / dAngle;
     for (int i = 0; i < count; i++)
     {
-        QPoint point;
+        QPointF point;
         double dAngleRad = dAngle * M_PI / 180;
         double radAngle  = dAngleRad * i;
         double sqrt3     = qSqrt(3);
         double a         = 1;
         double r         = 2;
+
+//        double length = qSin(radAngle);
+//        point.setX(length * qCos(radAngle));
+//        point.setY(length * qSin(radAngle));
+
         if (radAngle >= 0 && radAngle <= M_PI / 3)
         {
             double length = -a * qSin(radAngle + M_PI / 3) / sqrt3 +
