@@ -11,13 +11,24 @@ MyGLWidget::MyGLWidget(QWidget *parent)
     yRot = 0;
     zRot = 0;
 
-    r = 2;
-    a = 3;
+    r = 5;
+    a = 15;
+    dx = 1;
 
-    viewSideLength = 10;
+    viewSideLength = 2*qMax(r, a);
 
-    wrenchPoints = getPoints(1);
-    qDebug() << "point count:" << wrenchPoints.size();
+    wrenchPoints = getPointsAffine(dx);
+    qDebug() << "points count:" << wrenchPoints.size();
+}
+
+double MyGLWidget::getACoeff()
+{
+    return a;
+}
+
+double MyGLWidget::getRCoeff()
+{
+    return r;
 }
 
 QSize MyGLWidget::minimumSizeHint() const
@@ -38,28 +49,18 @@ static void qNormalizeAngle(int &angle)
         angle -= 360 * 16;
 }
 
-void MyGLWidget::setACoeff(int angle)
+void MyGLWidget::setACoeff(double aCoeff)
 {
-    a = angle;
-    wrenchPoints=getPoints(1);
+    a = aCoeff;
+    wrenchPoints=getPointsAffine(dx);
     updateGL();
 }
 
-void MyGLWidget::serRCoeff(int angle)
+void MyGLWidget::setRCoeff(double radius)
 {
-    r = angle;
-    wrenchPoints=getPoints(1);
+    r = radius;
+    wrenchPoints=getPointsAffine(dx);
     updateGL();
-}
-
-void MyGLWidget::setZRotation(int angle)
-{
-    qNormalizeAngle(angle);
-    if (angle != zRot) {
-        zRot = angle;
-        emit zRotationChanged(angle);
-        updateGL();
-    }
 }
 
 void MyGLWidget::wheelEvent(QWheelEvent *event)
@@ -74,21 +75,16 @@ void MyGLWidget::wheelEvent(QWheelEvent *event)
 
 void MyGLWidget::initializeGL()
 {
-    qglClearColor(Qt::black);
+    qglClearColor(Qt::white);
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-
-    static GLfloat lightPosition[4] = { 0, 0, 10, 1.0 };
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+//    glEnable(GL_DEPTH_TEST);
+//    glEnable(GL_CULL_FACE);
+//    glShadeModel(GL_SMOOTH);
 }
 
 void MyGLWidget::paintGL()
 {
-    qDebug() << Q_FUNC_INFO << "zDist" << viewSideLength;
+    qDebug() << Q_FUNC_INFO << "viewSideLength:" << viewSideLength;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_PROJECTION);
@@ -102,9 +98,6 @@ void MyGLWidget::paintGL()
 
     glLoadIdentity();
     glTranslatef(0.0, 0.0, -10);
-    glRotatef(xRot / 16.0, 1.0, 0.0, 0.0);
-    glRotatef(yRot / 16.0, 0.0, 1.0, 0.0);
-    glRotatef(zRot / 16.0, 0.0, 0.0, 1.0);
     draw();
 }
 
@@ -133,125 +126,158 @@ void MyGLWidget::mouseMoveEvent(QMouseEvent *event)
     int dx = event->x() - lastPos.x();
     int dy = event->y() - lastPos.y();
 
-    if (event->buttons() & Qt::LeftButton) {
-        setACoeff(xRot + 8 * dy);
-        serRCoeff(yRot + 8 * dx);
-    } else if (event->buttons() & Qt::RightButton) {
-        setACoeff(xRot + 8 * dy);
-        setZRotation(zRot + 8 * dx);
-    }
+    qDebug() << "dx dy:" << dx << dy;
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glTranslatef(dx, dy, 0);
+    glMatrixMode(GL_MODELVIEW);
 
     lastPos = event->pos();
 }
 
 void MyGLWidget::draw()
 {
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+//    glEnable(GL_MULTISAMPLE);
+
     qglColor(Qt::red);
+
+    glLineWidth(3);
     glBegin(GL_LINE_LOOP);
         for(int i = 0; i < wrenchPoints.size(); i++)
         {
             glVertex3f(wrenchPoints[i].x(), wrenchPoints[i].y(), 0);
         }
     glEnd();
-/*
-    glBegin(GL_QUADS);
-        glNormal3f(0,0,-1);
-        glVertex3f(-1,-1,0);
-        glVertex3f(-1,1,0);
-        glVertex3f(1,1,0);
-        glVertex3f(1,-1,0);
-
-    glEnd();
-    glBegin(GL_TRIANGLES);
-        glNormal3f(0,-1,0.707);
-        glVertex3f(-1,-1,0);
-        glVertex3f(1,-1,0);
-        glVertex3f(0,0,1.2);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-        glNormal3f(1,0, 0.707);
-        glVertex3f(1,-1,0);
-        glVertex3f(1,1,0);
-        glVertex3f(0,0,1.2);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-        glNormal3f(0,1,0.707);
-        glVertex3f(1,1,0);
-        glVertex3f(-1,1,0);
-        glVertex3f(0,0,1.2);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-        glNormal3f(-1,0,0.707);
-        glVertex3f(-1,1,0);
-        glVertex3f(-1,-1,0);
-        glVertex3f(0,0,1.2);
-    glEnd();
-*/
 }
 
-QList<QPointF> MyGLWidget::getPoints(float dAngle)
+QList<QPointF> MyGLWidget::getPointsAffine(float dAngle)
 {
     QList<QPointF> points;
-    int count = 360 / dAngle;
+    int count              = 360 / dAngle;
+    int usingFormulaNumber = 1;
+    double dAngleRad       = dAngle * M_PI / 180;
+
+    auto function1 = [](double a, double r, double radAngle){
+        return -a * qSin(radAngle + M_PI / 3) / qSqrt(3) +
+                    qSqrt(qPow((a + r), 2) -
+                          qPow(a * qCos(radAngle + M_PI / 3), 2) / 3);
+    };
+    auto function2 = [](double a, double r, double radAngle){
+        return a * qSin(radAngle) / qSqrt(3) +
+                   qSqrt(r * r -
+                         qPow(a * qCos(radAngle), 2) / 3);
+    };
+    auto function3 = [](double a, double r, double radAngle){
+        return -a * qSin(radAngle - M_PI / 3) / qSqrt(3) +
+                    qSqrt(qPow((a + r), 2) -
+                          qPow(a * qCos(radAngle - M_PI / 3), 2) / 3);
+    };
+    auto function4 = [](double a, double r, double radAngle){
+        return -a * qSin(radAngle + M_PI / 3) / qSqrt(3) +
+                    qSqrt(qPow(r, 2) -
+                          qPow(a * qCos(radAngle + M_PI / 3), 2) / 3);
+    };
+    auto function5 = [](double a, double r, double radAngle){
+        return a * qSin(radAngle) / qSqrt(3) +
+                   qSqrt(qPow((a + r), 2) -
+                         qPow(a * qCos(radAngle), 2) / 3);
+    };
+    auto function6 = [](double a, double r, double radAngle){
+        return -a * qSin(radAngle - M_PI / 3) / qSqrt(3) +
+                    qSqrt(qPow(r, 2) -
+                          qPow(a * qCos(radAngle - M_PI / 3), 2) / 3);
+    };
+
     for (int i = 0; i < count; i++)
     {
         QPointF point;
-        double dAngleRad = dAngle * M_PI / 180;
-        double radAngle  = dAngleRad * i;
-        double sqrt3     = qSqrt(3);
+        double currentValue;
+        double nextValue;
+        double radAngle = dAngleRad * i;
 
-//        double length = qSin(radAngle);
-//        point.setX(length * qCos(radAngle));
-//        point.setY(length * qSin(radAngle));
+        switch(usingFormulaNumber)
+        {
+            case 1:
+                currentValue = function1(a, r, radAngle);
+                nextValue    = function2(a, r, radAngle);
+                break;
+            case 2:
+                currentValue = function2(a, r, radAngle);
+                nextValue    = function3(a, r, radAngle);
+                break;
+            case 3:
+                currentValue = function3(a, r, radAngle);
+                nextValue    = function4(a, r, radAngle);
+                break;
+            case 4:
+                currentValue = function4(a, r, radAngle);
+                nextValue    = function5(a, r, radAngle);
+                break;
+            case 5:
+                currentValue = function5(a, r, radAngle);
+                nextValue    = function6(a, r, radAngle);
+                break;
+            case 6:
+                currentValue = function6(a, r, radAngle);
+                nextValue    = function1(a, r, radAngle);
+                break;
+            default:
+                currentValue = 0;
+                nextValue    = 0;
+                break;
+        }
 
-        if (radAngle >= 0 && radAngle <= M_PI / 3)
+        if (qAbs(currentValue - nextValue) <= 0.001)
         {
-            double length = -a * qSin(radAngle + M_PI / 3) / sqrt3 +
-                                 qSqrt(qPow((a + r), 2) -
-                                       qPow(a * qCos(radAngle + M_PI / 3), 2) / 3);
-            point.setX(length * qCos(radAngle));
-            point.setY(length * qSin(radAngle));
+            usingFormulaNumber = usingFormulaNumber == 6 ? 1 : usingFormulaNumber + 1;
+            point.setX(currentValue * qCos(radAngle));
+            point.setY(currentValue * qSin(radAngle));
         }
-        else if (radAngle > M_PI / 3 && radAngle <= M_PI * 2 / 3)
+        else
         {
-            double length = a * qSin(radAngle) / sqrt3 +
-                                qSqrt(r * r -
-                                      qPow(a * qCos(radAngle), 2) / 3);
-            point.setX(length * qCos(radAngle));
-            point.setY(length * qSin(radAngle));
+            point.setX(currentValue * qCos(radAngle));
+            point.setY(currentValue * qSin(radAngle));
         }
-        else if (radAngle > M_PI * 2 / 3 && radAngle <= M_PI)
-        {
-            double length = -a * qSin(radAngle - M_PI / 3) / sqrt3 +
-                                 qSqrt(qPow((a + r), 2) -
-                                       qPow(a * qCos(radAngle - M_PI / 3), 2) / 3);
-            point.setX(length * qCos(radAngle));
-            point.setY(length * qSin(radAngle));
-        }
-        else if (radAngle > M_PI && radAngle <= M_PI * 4 / 3)
-        {
-            double length = -a * qSin(radAngle + M_PI / 3) +
-                                 qSqrt(qPow(r, 2) -
-                                       qPow(a * qCos(radAngle + M_PI / 3), 2) / 3);
-            point.setX(length * qCos(radAngle));
-            point.setY(length * qSin(radAngle));
-        }
-        else if (radAngle > M_PI * 4 / 3 && radAngle <= M_PI * 5 / 3)
-        {
-            double length = a * qSin(radAngle + M_PI / 3) / sqrt3 +
-                                 qSqrt(qPow((a + r), 2) -
-                                       qPow(a * qCos(radAngle), 2) / 3);
-            point.setX(length * qCos(radAngle));
-            point.setY(length * qSin(radAngle));
-        }
-        else if (radAngle > M_PI * 5 / 3 && radAngle <= M_PI * 2)
-        {
-            double length = -a * qSin(radAngle - M_PI / 3) / sqrt3 +
-                                 qSqrt(qPow(r, 2) -
-                                       qPow(qCos(radAngle - M_PI / 3), 2));
-            point.setX(length * qCos(radAngle));
-            point.setY(length * qSin(radAngle));
-        }
+//        else if (radAngle > M_PI / 3 && radAngle <= M_PI * 2 / 3)
+//        {
+//            double length = function2(a, r, radAngle);
+//            point.setX(length * qCos(radAngle));
+//            point.setY(length * qSin(radAngle));
+//        }
+//        else if (radAngle > M_PI * 2 / 3 && radAngle <= M_PI)
+//        {
+//            double length = function3(a, r, radAngle);
+//            point.setX(length * qCos(radAngle));
+//            point.setY(length * qSin(radAngle));
+//        }
+//        else if (radAngle > M_PI && radAngle <= M_PI * 4 / 3)
+//        {
+//            double length = function4(a, r, radAngle);
+//            point.setX(length * qCos(radAngle));
+//            point.setY(length * qSin(radAngle));
+//        }
+//        else if (radAngle > M_PI * 4 / 3 && radAngle <= M_PI * 5 / 3)
+//        {
+//            double length = function5(a, r, radAngle);
+//            point.setX(length * qCos(radAngle));
+//            point.setY(length * qSin(radAngle));
+//        }
+//        else if (radAngle > M_PI * 5 / 3 && radAngle <= M_PI * 2)
+//        {
+//            double length = function6(a, r, radAngle);
+//            point.setX(length * qCos(radAngle));
+//            point.setY(length * qSin(radAngle));
+//        }
 
         points.append(point);
     }

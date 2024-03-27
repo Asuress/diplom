@@ -9,6 +9,9 @@ class MyGLWidget : public QGLWidget
 public:
     explicit MyGLWidget(QWidget *parent = nullptr);
 
+    double getACoeff();
+    double getRCoeff();
+
 protected:
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
@@ -22,24 +25,25 @@ protected:
 
 private:
     void draw();
-    QList<QPointF> getPoints(float dAngle);
+    QList<QPointF> getPointsAffine(float dAngle);
 
     int xRot;
     int yRot;
     int zRot;
 
     float viewSideLength;
-    float a;
-    float r;
+    double a;
+    double r;
+    double dx;
 
     QPoint lastPos;
     QList<QPointF> wrenchPoints;
 
 public slots:
     // slots for xyz-rotation slider
-    void setACoeff(int angle);
-    void serRCoeff(int angle);
-    void setZRotation(int angle);
+    void setACoeff(double angle);
+    void setRCoeff(double angle);
+//    void setZRotation(int angle);
 
 signals:
     // signaling rotation from mouse movement

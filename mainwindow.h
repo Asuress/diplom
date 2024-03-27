@@ -18,5 +18,9 @@ public:
 private:
     Ui::MainWindow *ui;
 
+private slots:
+    void aCoeffChanged(double value);
+    void rCoeffChanged(double value);
+
 };
 #endif // MAINWINDOW_H

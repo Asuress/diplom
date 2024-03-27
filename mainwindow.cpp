@@ -7,9 +7,21 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->aSlider, &QSlider::sliderMoved, ui->openGLWidget, &MyGLWidget::setACoeff);
-    connect(ui->rSlider, &QSlider::sliderMoved, ui->openGLWidget, &MyGLWidget::serRCoeff);
-    connect(ui->zRotSlider, &QSlider::sliderMoved, ui->openGLWidget, &MyGLWidget::setZRotation);
+    connect(ui->aSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            ui->openGLWidget, &MyGLWidget::setACoeff);
+    connect(ui->rSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            ui->openGLWidget, &MyGLWidget::setRCoeff);
+
+    connect(ui->aSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MainWindow::aCoeffChanged);
+    connect(ui->rSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MainWindow::rCoeffChanged);
+
+    ui->aSpinBox->setValue(ui->openGLWidget->getACoeff());
+    ui->rSpinBox->setValue(ui->openGLWidget->getRCoeff());
+
+    ui->horizontalLayout->setAlignment(Qt::AlignmentFlag::AlignRight);
+    ui->horizontalLayout_2->setAlignment(Qt::AlignmentFlag::AlignRight);
 }
 
 MainWindow::~MainWindow()
@@ -17,3 +29,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::aCoeffChanged(double value)
+{
+    ui->aSliderLabel->setText(QString("a: %1").arg(QString::number(value)));
+}
+
+void MainWindow::rCoeffChanged(double value)
+{
+    ui->rSliderLabel->setText(QString("r: %1").arg(QString::number(value)));
+}
