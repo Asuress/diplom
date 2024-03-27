@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS OpenGL REQUIRED)
+find_package(OpenGL REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -48,7 +49,8 @@ endif()
 
 target_link_libraries(diplom PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(diplom PRIVATE Qt${QT_VERSION_MAJOR}::OpenGL)
-target_link_libraries(diplom PRIVATE /usr/lib/x86_64-linux-gnu/libGL.so)
+target_link_libraries(diplom PRIVATE OpenGL)
+#target_link_libraries(diplom PRIVATE /usr/lib/x86_64-linux-gnu/libGL.so)
 
 set_target_properties(diplom PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

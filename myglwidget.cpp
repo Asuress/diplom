@@ -5,7 +5,7 @@
 #include <QtMath>
 
 MyGLWidget::MyGLWidget(QWidget *parent)
-    : QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+    : QOpenGLWidget(parent)
 {
     xRot = 0;
     yRot = 0;
@@ -53,14 +53,14 @@ void MyGLWidget::setACoeff(double aCoeff)
 {
     a = aCoeff;
     wrenchPoints=getPointsAffine(dx);
-    updateGL();
+    update();
 }
 
 void MyGLWidget::setRCoeff(double radius)
 {
     r = radius;
     wrenchPoints=getPointsAffine(dx);
-    updateGL();
+    update();
 }
 
 void MyGLWidget::wheelEvent(QWheelEvent *event)
@@ -70,12 +70,12 @@ void MyGLWidget::wheelEvent(QWheelEvent *event)
     viewSideLength += event->angleDelta().y() / 120;
     viewSideLength = viewSideLength < 0 ? 0 : viewSideLength;
 
-    updateGL();
+    update();
 }
 
 void MyGLWidget::initializeGL()
 {
-    qglClearColor(Qt::white);
+    glClearColor(255,255,255,255);
 
 //    glEnable(GL_DEPTH_TEST);
 //    glEnable(GL_CULL_FACE);
@@ -147,11 +147,9 @@ void MyGLWidget::draw()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-//    glEnable(GL_MULTISAMPLE);
+    glColor3f(255, 0, 0);
 
-    qglColor(Qt::red);
-
-    glLineWidth(3);
+    glLineWidth(1);
     glBegin(GL_LINE_LOOP);
         for(int i = 0; i < wrenchPoints.size(); i++)
         {
@@ -248,36 +246,6 @@ QList<QPointF> MyGLWidget::getPointsAffine(float dAngle)
             point.setX(currentValue * qCos(radAngle));
             point.setY(currentValue * qSin(radAngle));
         }
-//        else if (radAngle > M_PI / 3 && radAngle <= M_PI * 2 / 3)
-//        {
-//            double length = function2(a, r, radAngle);
-//            point.setX(length * qCos(radAngle));
-//            point.setY(length * qSin(radAngle));
-//        }
-//        else if (radAngle > M_PI * 2 / 3 && radAngle <= M_PI)
-//        {
-//            double length = function3(a, r, radAngle);
-//            point.setX(length * qCos(radAngle));
-//            point.setY(length * qSin(radAngle));
-//        }
-//        else if (radAngle > M_PI && radAngle <= M_PI * 4 / 3)
-//        {
-//            double length = function4(a, r, radAngle);
-//            point.setX(length * qCos(radAngle));
-//            point.setY(length * qSin(radAngle));
-//        }
-//        else if (radAngle > M_PI * 4 / 3 && radAngle <= M_PI * 5 / 3)
-//        {
-//            double length = function5(a, r, radAngle);
-//            point.setX(length * qCos(radAngle));
-//            point.setY(length * qSin(radAngle));
-//        }
-//        else if (radAngle > M_PI * 5 / 3 && radAngle <= M_PI * 2)
-//        {
-//            double length = function6(a, r, radAngle);
-//            point.setX(length * qCos(radAngle));
-//            point.setY(length * qSin(radAngle));
-//        }
 
         points.append(point);
     }
