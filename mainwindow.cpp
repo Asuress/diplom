@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+#include <QKeyEvent>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -37,4 +39,10 @@ void MainWindow::aCoeffChanged(double value)
 void MainWindow::rCoeffChanged(double value)
 {
     ui->rSliderLabel->setText(QString("r: %1").arg(QString::number(value)));
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_1)
+        update();
 }

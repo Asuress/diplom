@@ -22,5 +22,9 @@ private slots:
     void aCoeffChanged(double value);
     void rCoeffChanged(double value);
 
+
+    // QWidget interface
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
 };
 #endif // MAINWINDOW_H

@@ -73,6 +73,12 @@ void MyGLWidget::wheelEvent(QWheelEvent *event)
     update();
 }
 
+void MyGLWidget::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_1)
+        update();
+}
+
 void MyGLWidget::initializeGL()
 {
     glClearColor(255,255,255,255);
@@ -135,6 +141,8 @@ void MyGLWidget::mouseMoveEvent(QMouseEvent *event)
 
     lastPos = event->pos();
 }
+
+
 
 void MyGLWidget::draw()
 {

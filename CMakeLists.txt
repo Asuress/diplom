@@ -49,8 +49,7 @@ endif()
 
 target_link_libraries(diplom PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(diplom PRIVATE Qt${QT_VERSION_MAJOR}::OpenGL)
-target_link_libraries(diplom PRIVATE OpenGL)
-#target_link_libraries(diplom PRIVATE /usr/lib/x86_64-linux-gnu/libGL.so)
+target_link_libraries(diplom PRIVATE ${OPENGL_LIBRARIES})
 
 set_target_properties(diplom PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
